@@ -255,7 +255,7 @@ class Saper:
                     # frame = ImageTk.PhotoImage(frame)
                     frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
                     lbl.configure(image=frame)
-                    time.sleep(0.01)
+                    time.sleep(0.05)
                     win.update()
             except:
                 break
@@ -289,7 +289,7 @@ class Saper:
         if self.SOUND_ON:
             winsound.PlaySound('boom.wav', winsound.SND_FILENAME)
 
-        self.gif_play("exploding.gif", win_g_o, 10, 10, 120, 120)
+        self.gif_play("exploding_low.gif", win_g_o, 10, 10, 120, 120)
 
     def read_winners_from_JSON(self):
         winners = []
@@ -314,9 +314,15 @@ class Saper:
                 new_list.append(i)
         return new_list
 
-    def save_user_name_to_JSON(self, players_list: list, num_line: int, cell: CTkEntry):
-        cell.configure(state="disabled", fg_color="white")
-        players_list[num_line]["name"] = cell.get()
+    def name_enter(self, players_list: list, num_line: int, cell: CTkEntry, win, but):
+        name = cell.get()
+        if name != "":
+            cell.configure(state="disabled", fg_color="white")
+            but.configure(text="Перезапуск игры", command=lambda: self.destroy_message_window_and_reboot(win))
+            players_list[num_line]["name"] = name
+            self.save_user_name_to_JSON(players_list, cell)
+
+    def save_user_name_to_JSON(self, players_list: list, cell: CTkEntry):
         try:
             with open("winners.json", "w") as f:
                 json.dump(players_list, f)
@@ -417,9 +423,9 @@ class Saper:
         frm_2 = CTkFrame(win_win, width=330, height=50)
         frm_2.place(x=10, y=310)
         CTkButton(frm_2, text="Закрыть окно", command=win_win.destroy).place(x=10, y=10)
-        CTkButton(frm_2, text="Перезапуск игры", command=
-                    lambda: self.destroy_message_window_and_reboot(win_win)
-                  ).place(x=180, y=10)
+        btn1 = CTkButton(frm_2, text="Сохранить имя", command=lambda: \
+                                        self.name_enter(list_players[0:19], line_num-1, enabled_cell, win_win, btn1))
+        btn1.place(x=180, y=10)
 
         if line_num>5:
             shift = head_label.cget("height") + (lbl2.cget("height") +2) * (line_num - 2) - 4
@@ -429,7 +435,7 @@ class Saper:
             enabled_cell.configure(state="normal", placeholder_text="Введи своё имя", placeholder_text_color="red",
                                    fg_color="yellow")
             enabled_cell.bind("<Return>", lambda event: \
-                self.save_user_name_to_JSON(list_players[0:19], line_num-1, enabled_cell))
+                                        self.name_enter(list_players[0:19], line_num-1, enabled_cell, win_win, btn1))
 
 
 
