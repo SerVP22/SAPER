@@ -4,11 +4,11 @@ import tkinter as tk
 from random import sample
 from Buttons import Sap_button
 from customtkinter import CTk, CTkOptionMenu, CTkLabel, CTkButton, \
-                          CTkToplevel, CTkImage, CTkComboBox, CTkCanvas, \
+                          CTkToplevel, CTkImage, CTkComboBox, \
                           CTkSwitch, CTkFrame, CTkScrollableFrame, CTkEntry
 # from Mes_Box import settings_win, change_hard_level_button_text
 # import PIL.features
-from PIL import Image, ImageTk, ImageSequence
+from PIL import Image, ImageSequence
 import winsound, sys
 
 
@@ -174,7 +174,7 @@ class Saper:
         CTkLabel(win_set, text="Сложность:", anchor="e", fg_color='white', corner_radius=5,
                  width=140, font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
 
-        val1 = tuple(self.HARD_LEVELS.keys())
+        val1 = list(self.HARD_LEVELS.keys())
         comb1 = CTkComboBox(win_set, values=val1, width=100)
         comb1.grid(row=0, column=1, pady=5)
         comb1.set(str(self.get_current_hard()))
@@ -268,7 +268,7 @@ class Saper:
         H = 140
 
         win_g_o = CTkToplevel(self.win)
-        win_g_o.title("Вы проиграли!")
+        win_g_o.title("Ты проиграл!")
         win_g_o.resizable(False, False)
         # win_g_o.attributes("-alpha", 0.9)
         win_g_o.attributes("-toolwindow", True)
@@ -307,7 +307,11 @@ class Saper:
             if score<i["score"]:
                 new_list.append(i)
             elif score>=i["score"] and not user_inside:
-                new_list.append({"name":"", "score": score, "level": self.get_current_hard()})
+                new_list.append({"name":"",
+                                 "score": score,
+                                 # для теста "level": "Normal 23x34"
+                                 "level": f"{self.get_current_hard()} {self.STROKI}x{self.STOLBCI}"
+                                })
                 new_list.append(i)
                 user_inside = True
             elif score>=i["score"] and user_inside:
@@ -350,30 +354,40 @@ class Saper:
         frm_0 = CTkFrame(win_win, width=330, height=65)
         frm_0.place(x=10, y=10)
         CTkLabel(frm_0, text="Вы набрали", font=('Arial', 18), pady=10).place(x=30, y=10)
-        CTkLabel(frm_0, text=score, font=('Arial', 21), pady=10, width=90, fg_color="white",
+        CTkLabel(frm_0, text=str(score), font=('Arial', 21), pady=10, width=90, fg_color="white",
                  corner_radius=10).place(x=140, y=10)
-        CTkLabel(frm_0, text="очков", font=('Arial', 18), pady=10).place(x=240, y=10)
+        if str(score)[-1] in "1":
+            text = "очко"
+        elif str(score)[-1] in "234":
+            text = "очка"
+        else:
+            text = "очков"
+        CTkLabel(frm_0, text=text, font=('Arial', 18), pady=10).place(x=240, y=10)
 
         frm_1 = CTkScrollableFrame(win_win, width=308, height=10)
         frm_1.place(x=10, y=85)
 
 
         CTkLabel(frm_1, text="№", corner_radius=5, width=30).grid(row=0, column=0, padx=1)
-        head_label = CTkLabel(frm_1, text="Имя игрока", corner_radius=5, width=130)
+        head_label = CTkLabel(frm_1, text="Имя игрока", corner_radius=5, width=115)
         head_label.grid(row=0, column=1, padx=1)
         CTkLabel(frm_1, text="Очки", corner_radius=5, width=60).grid(row=0, column=2, padx=1)
-        CTkLabel(frm_1, text="Сложность", corner_radius=5, width=80).grid(row=0, column=3, padx=1)
+        CTkLabel(frm_1, text="Сложность", corner_radius=5, width=95).grid(row=0, column=3, padx=1)
 
         list_players = self.read_winners_from_JSON()
-        print(list_players)
+        # print(list_players)
         if len(list_players)>0:
             list_players = self.list_players_update(list_players, score)
         else:
-            list_players.append({"name": "", "score": score, "level": self.get_current_hard()})
-        print(list_players)
+            list_players.append({"name": "",
+                                 "score": score,
+                                 "level": f"{self.get_current_hard()} {self.STROKI}x{self.STOLBCI}"
+                                })
+        # print(list_players)
 
         enabled_cell = None
         line_num = None
+        lbl2 = None
 
         for i in range(1, WINNERS_COUNT+1):
             lbl1 = CTkEntry(frm_1, width=30, )
@@ -385,7 +399,7 @@ class Saper:
             lbl1.configure(state=tk.DISABLED, justify="center")
             lbl1.grid(row=i, column=0, padx=1, pady=1)
 
-            lbl2 = CTkEntry(frm_1, width=130, )
+            lbl2 = CTkEntry(frm_1, width=115, )
             try:
                 txt_name = list_players[i-1]["name"]
             except LookupError:
@@ -403,7 +417,7 @@ class Saper:
             lbl3.configure(state=tk.DISABLED, justify="right")
             lbl3.grid(row=i, column=2, padx=1, pady=1)
 
-            lbl4 = CTkEntry(frm_1, width=80, )
+            lbl4 = CTkEntry(frm_1, width=95, )
             try:
                 txt_level = list_players[i-1]["level"]
             except LookupError:
@@ -453,7 +467,7 @@ class Saper:
         self.reload_game()
 
 
-    def save_settings_to_file_and_reboot(self, file_name, win, *args:CTkComboBox):
+    def save_settings_to_file_and_reboot(self, file_name, win, *args):
         try:
             with open(file_name, 'w') as f:
                 for i in args:
@@ -499,7 +513,7 @@ class Saper:
                 # print("YOU WIN!!!")
                 self.show_win_window()
 
-    def r_b_click(self, but: CTkButton, event):
+    def r_b_click(self, but: Sap_button, event):
         if not self.first_shoot and not but.visit and not self.game_win_over_flag:
         # если не начало игры, поле не открыто, и игра не окончена
             if self.SOUND_ON:
