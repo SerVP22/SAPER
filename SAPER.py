@@ -59,13 +59,13 @@ class Saper:
     SW = win.winfo_screenwidth()  # ширина экрана
     SH = win.winfo_screenheight()  # высота экрана
 
-    FILE_CFG = "_config.cf"
+    FILE_CFG = "config.json"
 
 
 
     def __init__(self):
 
-        self.CURRENT_LEVEL, self.STROKI, self.STOLBCI, self.SOUND_ON = self.get_settings_from_file(self.FILE_CFG)
+        self.CURRENT_LEVEL, self.STROKI, self.STOLBCI, self.SOUND_ON = self.read_settings_from_file(self.FILE_CFG)
         # self.STROKI = self.STOLBCI = 7
         # self.CURRENT_LEVEL =
 
@@ -127,23 +127,21 @@ class Saper:
         """
         return self.SW//self.BW -1, self.SH//self.BH - 2
 
-    def get_settings_from_file(self, file_name):
+    def read_settings_from_file(self, file_name):
         temp_list = []
         try:
             with open(file_name, 'r') as f:
-                for i in f:
-                    temp_list.append(i[:-1])
-                    print(i)
-            temp_list[0] = self.HARD_LEVELS[temp_list[0]]
-            temp_list[1] = int(temp_list[1])
-            temp_list[2] = int(temp_list[2])
-            if temp_list[3]=="off":
-                temp_list[3] = False
+                settings = json.load(f)[0]
+            temp_list.append(self.HARD_LEVELS[settings["level"]])
+            temp_list.append(int(settings["rows"]))
+            temp_list.append(int(settings["columns"]))
+            if settings["sound"]=="off":
+                temp_list.append(False)
             else:
-                temp_list[3] = True
+                temp_list.append(True)
             return temp_list
         except:
-             return (0.125, 10, 10, "on") #конфигурация игры по умолчанию
+            return (0.125, 10, 10, True) #конфигурация игры по умолчанию
 
     def get_message_window_geometry(self, W, H, geometry):
         parent_size, parent_x, parent_y = geometry.split(sep="+")
@@ -204,43 +202,30 @@ class Saper:
         switch1.grid(row=3, column=1, pady=5 )
 
         btn1 = CTkButton(win_set, text="Применить параметры", command=
-            lambda: self.save_settings_to_file_and_reboot(self.FILE_CFG, win_set, comb1, comb2, comb3, switch1))
+            lambda: self.save_settings_to_file_and_reboot(win_set, comb1, comb2, comb3, switch1))
         btn1.grid(row=4, column=0, columnspan=2, pady=15)
 
         win_set.grab_set()
 
     def switch0_event(self):
-        if self.switch0.get() == "on":
-            self.switch0.select()
-            self.SOUND_ON = True
-        else:
-            self.switch0.deselect()
-            self.SOUND_ON = False
-
-        # try:
-        with open(self.FILE_CFG, 'r') as f:
-            old_data = f.read()
-        print(old_data)
-        new_data = "default data"
-        if "on" in old_data:
-            new_data = old_data.replace('on', 'off')
-        elif "off" in old_data:
-            new_data = old_data.replace('off', 'on')
-        print(new_data)
-        with open(self.FILE_CFG, 'w') as f:
-            f.write(new_data)
-        # except:
-        #      print("Жопа!!!")
-
-        print("0", self.switch0.get())
+        try:
+            with open(self.FILE_CFG, 'r') as f:
+                data = json.load(f)
+            if self.switch0.get() == "on":
+                self.SOUND_ON = True
+            else:
+                self.SOUND_ON = False
+            data[0]["sound"] = self.switch0.get()
+            with open(self.FILE_CFG, 'w') as f:
+                json.dump(data, f)
+        except:
+            print("Жопа!!!")
 
     def switch1_event(self, sw:CTkSwitch):
         if sw.get() == "on":
             self.switch0.select()
-            # self.SOUND_ON = True
         else:
             self.switch0.deselect()
-            # self.SOUND_ON = False
         self.switch0_event()
 
     def gif_play(self, file, win, x, y, size_x, size_y):
@@ -259,8 +244,6 @@ class Saper:
                     win.update()
             except:
                 break
-
-
 
     def show_game_over_window(self):
 
@@ -282,7 +265,6 @@ class Saper:
         CTkButton(win_g_o, text="Перезапуск игры", command=
         lambda: self.destroy_message_window_and_reboot(win_g_o)
                   ).place(x=170, y=100)
-
 
 
         win_g_o.grab_set()
@@ -375,7 +357,6 @@ class Saper:
         CTkLabel(frm_1, text="Сложность", corner_radius=5, width=95).grid(row=0, column=3, padx=1)
 
         list_players = self.read_winners_from_JSON()
-        # print(list_players)
         if len(list_players)>0:
             list_players = self.list_players_update(list_players, score)
         else:
@@ -383,7 +364,6 @@ class Saper:
                                  "score": score,
                                  "level": f"{self.get_current_hard()} {self.STROKI}x{self.STOLBCI}"
                                 })
-        # print(list_players)
 
         enabled_cell = None
         line_num = None
@@ -467,16 +447,25 @@ class Saper:
         self.reload_game()
 
 
-    def save_settings_to_file_and_reboot(self, file_name, win, *args):
+    def save_settings_to_JSON(self, settings):
+        mono_list = []
+        mono_list.append(settings)
         try:
-            with open(file_name, 'w') as f:
-                for i in args:
-                    f.write(i.get()+"\n")
+            with open(self.FILE_CFG, "w") as f:
+                json.dump(mono_list, f)
         except:
             pass
-        finally:
-            win.destroy()
-            self.reload_game()
+
+
+    def save_settings_to_file_and_reboot(self, win, *args):
+        settings = {}
+        settings["level"] = args[0].get()
+        settings["rows"] = args[1].get()
+        settings["columns"] = args[2].get()
+        settings["sound"] = args[3].get()
+        self.save_settings_to_JSON(settings)
+        win.destroy()
+        self.reload_game()
 
     def reborn_button(self, but):
         copy_but = Sap_button(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
@@ -510,7 +499,6 @@ class Saper:
             if count_match == len_list:
                 self.open_all_buttons(win=True)
                 self.game_win_flag = True
-                # print("YOU WIN!!!")
                 self.show_win_window()
 
     def r_b_click(self, but: Sap_button, event):
@@ -582,12 +570,9 @@ class Saper:
         elif option == self.menu_command_list[1]: # Настройки
             self.menu1.set("Меню")
             self.set_win = self.show_settings_window()
-            # print(type(self.set_win))
-            # print(option)
         elif option == self.menu_command_list[0]:
             self.menu1.set("Меню")
             self.reload_game()
-            # print(option)
 
     def get_current_hard(self):
         for key, value in self.HARD_LEVELS.items():
@@ -675,7 +660,7 @@ class Saper:
             self.set_mines(but.num)
             self.mines_around()
             # self.open_all_buttons()
-            self.print_buttons_to_console()
+            # self.print_buttons_to_console()
             # self.button_animate()
             self.label3.configure(text="ЛКМ: открыть, ПКМ: флажок")
             self.first_shoot = False
@@ -766,9 +751,9 @@ class Saper:
                 if but.num in self.list_of_mines:
                     but.bomba = True
 
-    def print_buttons_to_console(self):
-        for i in self.buttons_list:
-            print(i)
+    # def print_buttons_to_console(self):
+    #     for i in self.buttons_list:
+    #         print(i)
 
     def start_game(self):
         self.create_menu_line()
