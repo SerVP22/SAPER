@@ -1,5 +1,7 @@
 import json
 import time
+import pygame
+
 import tkinter as tk
 from random import sample
 from Buttons import Sap_button
@@ -9,7 +11,7 @@ from customtkinter import CTk, CTkOptionMenu, CTkLabel, CTkButton, \
 # from Mes_Box import settings_win, change_hard_level_button_text
 # import PIL.features
 from PIL import Image, ImageSequence
-import winsound, sys
+import sys
 
 
 
@@ -39,16 +41,29 @@ class Saper:
     win.resizable(False, False)
 
     try:
-        win.iconbitmap(tk.PhotoImage('bomb4.ico'))
-    except:
-        ...
+        pygame.mixer.pre_init(44100, -16, 1, 512)
+        pygame.init()
+        sound_boom = pygame.mixer.Sound("sounds/boom.wav")
+        sound_win = pygame.mixer.Sound("sounds/win.wav")
+        sound_click = pygame.mixer.Sound("sounds/click.wav")
+        sound_flag = pygame.mixer.Sound("sounds/flag.wav")
+    except Exception as ex:
+        sound_click = sound_boom = sound_win = sound_flag = False
+        print(ex)
+
+    try:
+        win.iconbitmap(tk.PhotoImage('images/bomb4.ico'))
+    except Exception as ex:
+        print(ex)
 
     BW = 40  # Ширина кнопки
     BH = 40  # Высота кнопки
 
     try:
-        flag_img = CTkImage(light_image=Image.open("flag2.png"), dark_image=Image.open("flag2.png"), size=(16, 16))
-        bomb_img = CTkImage(light_image=Image.open("bomb.png"), dark_image=Image.open("bomb.png"), size=(25, 25))
+        flag_img = CTkImage(light_image=Image.open("images/flag2.png"),
+                            dark_image=Image.open("images/flag2.png"), size=(16, 16))
+        bomb_img = CTkImage(light_image=Image.open("images/bomb.png"),
+                            dark_image=Image.open("images/bomb.png"), size=(25, 25))
     except:
         print("Ошибка загрузки изображений")
         win.destroy()
@@ -229,21 +244,25 @@ class Saper:
         self.switch0_event()
 
     def gif_play(self, file, win, x, y, size_x, size_y):
-        img = Image.open(file)
-        lbl = CTkLabel(win, text="")
-        lbl.place(x=x, y=y)
+        try:
+            img = Image.open(file)
+            lbl = CTkLabel(win, text="")
+            lbl.place(x=x, y=y)
 
-        while True:
-            try:
-                for frame in ImageSequence.Iterator(img):
-                    # frame = frame.resize((size_x, size_y))
-                    # frame = ImageTk.PhotoImage(frame)
-                    frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
-                    lbl.configure(image=frame)
-                    time.sleep(0.05)
-                    win.update()
-            except:
-                break
+            while True:
+                try:
+                    for frame in ImageSequence.Iterator(img):
+                        # frame = frame.resize((size_x, size_y))
+                        # frame = ImageTk.PhotoImage(frame)
+                        frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
+                        lbl.configure(image=frame)
+                        time.sleep(0.02)
+                        win.update()
+                except Exception as ex:
+                    print(ex)
+                    break
+        except Exception as ex:
+            print(ex)
 
     def show_game_over_window(self):
 
@@ -268,10 +287,10 @@ class Saper:
 
 
         win_g_o.grab_set()
-        if self.SOUND_ON:
-            winsound.PlaySound('boom.wav', winsound.SND_FILENAME)
+        if self.SOUND_ON and self.sound_boom:
+            self.sound_boom.play()
 
-        self.gif_play("exploding_low.gif", win_g_o, 10, 10, 120, 120)
+        self.gif_play("images/exploding_low.gif", win_g_o, 10, 10, 120, 120)
 
     def read_winners_from_JSON(self):
         winners = []
@@ -438,8 +457,9 @@ class Saper:
         # win_win.bind_class("customtkinter.windows.ctk_toplevel.CTkToplevel", "<Leave>", lambda event: print("out"))
         win_win.grab_set()
         win_win.focus_set()
-        if self.SOUND_ON:
-            winsound.PlaySound('winsound_quite.wav', winsound.SND_FILENAME)
+
+        if self.SOUND_ON and self.sound_win:
+            self.sound_win.play()
 
     def destroy_message_window_and_reboot(self, win):
         # win.after_cancel(self.loop_1)
@@ -504,8 +524,8 @@ class Saper:
     def r_b_click(self, but: Sap_button, event):
         if not self.first_shoot and not but.visit and not self.game_win_over_flag:
         # если не начало игры, поле не открыто, и игра не окончена
-            if self.SOUND_ON:
-                winsound.PlaySound('flag.wav', winsound.SND_FILENAME)
+            if self.SOUND_ON and self.sound_flag:
+                self.sound_flag.play()
             if but.num not in self.flag_list:
                 but.configure(image=self.flag_img, state="disabled")
 
@@ -653,8 +673,8 @@ class Saper:
 
     def click_mouse(self, but: Sap_button):
 
-        if self.SOUND_ON:
-            winsound.PlaySound('click.wav', winsound.SND_FILENAME)
+        if self.SOUND_ON and self.sound_click:
+            self.sound_click.play()
 
         if self.first_shoot:
             self.set_mines(but.num)
