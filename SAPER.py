@@ -130,7 +130,7 @@ class Saper:
                 but = Sap_button(self.win, x=i, y=j, num=num_but, text='', width=self.BW, height=self.BH,
                                  corner_radius=10, border_width=2, fg_color='grey')
                 but.configure(command=lambda b=but: self.click_mouse(b))
-                but.bind("<Button-3>", lambda event, b=but: self.r_b_click(b, event))
+                but.bind("<Button-3>", lambda event, b=but: self.r_b_click(b))
                 temp_list.append(but)
 
             self.buttons_list.append(temp_list)
@@ -491,7 +491,7 @@ class Saper:
         copy_but = Sap_button(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
                               corner_radius=10, border_width=2, fg_color='grey')
         copy_but.configure(command=lambda b=copy_but: self.click_mouse(b))
-        copy_but.bind("<Button-3>", lambda event, b=copy_but: self.r_b_click(b, event))
+        copy_but.bind("<Button-3>", lambda event, b=copy_but: self.r_b_click(b))
         self.buttons_list[but.x][but.y] = copy_but
         copy_but.bomba = but.bomba
         copy_but.bombs_around = but.bombs_around
@@ -521,23 +521,15 @@ class Saper:
                 self.game_win_flag = True
                 self.show_win_window()
 
-    def r_b_click(self, but: Sap_button, event):
+    def r_b_click(self, but: Sap_button):
         if not self.first_shoot and not but.visit and not self.game_win_over_flag:
         # если не начало игры, поле не открыто, и игра не окончена
             if self.SOUND_ON and self.sound_flag:
                 self.sound_flag.play()
             if but.num not in self.flag_list:
-                but.configure(image=self.flag_img, state="disabled")
-
-
-                # canvas = CTkCanvas(self.win, width=25, height=25)
-                # canvas.grid(row=but.x, column=but.y)
-                # img = ImageTk.PhotoImage(Image.open("flag2.png"))
-                # canvas.create_image(25, 25, image=img)
-                # # canvas.create_oval(2,2,24,24)
-                # canvas.bind("<Button-3>", lambda event: canvas.destroy())
-
                 self.flag_list.append(but.num)
+                but.configure(image=self.flag_img, state="disabled")
+                but._image_label.bind("<Button-3>", lambda event, b=but: self.r_b_click(b))
 
             else:
                 self.flag_list.remove(but.num)
