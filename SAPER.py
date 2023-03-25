@@ -518,7 +518,7 @@ class Saper:
                     count_match += 1
             if count_match == len_list:
                 self.open_all_buttons(win=True)
-                self.game_win_flag = True
+                self.game_win_over_flag = True
                 self.show_win_window()
 
     def r_b_click(self, but: Sap_button):
