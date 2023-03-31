@@ -131,8 +131,7 @@ class Saper(MesWindows):
                     num_but = 0
                 but = Sap_button(self.win, x=i, y=j, num=num_but, text='', width=self.BW, height=self.BH,
                                  corner_radius=10, border_width=2, fg_color='grey')
-                but.configure(command=lambda b=but: self.click_mouse(b))
-                but.bind("<Button-3>", lambda event, b=but: self.r_b_click(b))
+                self.set_bindings_for_btn(but)
                 temp_list.append(but)
 
             self.buttons_list.append(temp_list)
@@ -174,11 +173,40 @@ class Saper(MesWindows):
         except Exception as ex:
             print(ex)
 
+    def btn_anim(self, lst: list, st="normal"):
+        if st=="normal":
+            r = 10
+            c = 'grey'
+        elif st=="flash":
+            r = 5
+            c = 'grey80'
+        for i in lst:
+            i.configure(corner_radius=r, fg_color=c)
+
+    def middle_btn_click(self, btn):
+        lst = []
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                new_x = btn.x + i
+                new_y = btn.y + j
+                neighbour = self.buttons_list[new_x][new_y]
+                if not neighbour.visit:
+                    lst.append(neighbour)
+        self.btn_anim(lst, st="flash")
+        self.win.after(150, lambda: self.btn_anim(lst))
+
+    def set_bindings_for_btn(self, btn:Sap_button):
+        if btn.visit:
+            if btn.bombs_around>0:
+                btn.bind("<Button-2>", lambda event, b=btn: self.middle_btn_click(b))
+        else:
+            btn.configure(command=lambda b=btn: self.click_mouse(b))
+            btn.bind("<Button-3>", lambda event, b=btn: self.right_btn_click(b))
+
     def reborn_button(self, but):
         copy_but = Sap_button(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
                               corner_radius=10, border_width=2, fg_color='grey')
-        copy_but.configure(command=lambda b=copy_but: self.click_mouse(b))
-        copy_but.bind("<Button-3>", lambda event, b=copy_but: self.r_b_click(b))
+        self.set_bindings_for_btn(copy_but)
         self.buttons_list[but.x][but.y] = copy_but
         copy_but.bomba = but.bomba
         copy_but.bombs_around = but.bombs_around
@@ -192,7 +220,7 @@ class Saper(MesWindows):
         Функция проверяет, все ли мины помечены,
         через сравнение списка мин и списка флажков
         Если да, то игра успешно завершается.
-        При этом выводится окно верхнего уровня.
+        При этом выводится окно успешного конца игры.
         """
 
         if len(self.list_of_mines) == len(self.flag_list):
@@ -208,7 +236,7 @@ class Saper(MesWindows):
                 self.game_win_over_flag = True
                 self.show_win_window()
 
-    def r_b_click(self, but: Sap_button):
+    def right_btn_click(self, but: Sap_button):
         if not self.first_shoot and not but.visit and not self.game_win_over_flag:
         # если не начало игры, поле не открыто, и игра не окончена
             if self.SOUND_ON and self.sound_flag:
@@ -216,7 +244,7 @@ class Saper(MesWindows):
             if but.num not in self.flag_list:
                 self.flag_list.append(but.num)
                 but.configure(image=self.flag_img, state="disabled")
-                but._image_label.bind("<Button-3>", lambda event, b=but: self.r_b_click(b))
+                but._image_label.bind("<Button-3>", lambda event, b=but: self.right_btn_click(b))
 
             else:
                 self.flag_list.remove(but.num)
@@ -331,6 +359,7 @@ class Saper(MesWindows):
             self.sound_click.play()
 
         if self.first_shoot:
+
             self.set_mines(but.num)
             self.mines_around()
             # self.open_all_buttons()
@@ -350,6 +379,7 @@ class Saper(MesWindows):
                 txt = but.bombs_around
                 but.configure(text=txt, border_width=1, corner_radius=5, fg_color='white',
                               text_color_disabled=self.color_dic[txt], state='disabled')
+                self.set_bindings_for_btn(but)
             else: # открываем всех соседей (алгоритм "поиск в ширину")
                 self.search_neighbours(but)
 
@@ -380,7 +410,7 @@ class Saper(MesWindows):
             but_name = ""
             q_but.visit = True
 
-            if q_but.num in self.flag_list:
+            if q_but.num in self.flag_list: # флаг отмечен неправильно
                 q_but = self.reborn_button(q_but)
                 self.flag_list.remove(q_but.num)
                 self.status_bar_update()
@@ -400,7 +430,7 @@ class Saper(MesWindows):
                             queue.append(neighbour)
 
             q_but.configure(text=but_name, border_width=1, corner_radius=5, fg_color='white', state='disabled')
-
+            self.set_bindings_for_btn(q_but)
     def reload_game(self):
         for child in self.win.winfo_children():
             child.destroy()
@@ -417,7 +447,7 @@ class Saper(MesWindows):
     def set_mines(self, except_but):
         temp = [i for i in range(1, self.STROKI * self.STOLBCI + 1) if i != except_but]
         self.list_of_mines = sample(temp, k=self.MINES)
-        print(self.list_of_mines)
+        # print(self.list_of_mines)
         for i in range(0, self.STROKI + 2):
             for j in range(0, self.STOLBCI + 2):
                 but = self.buttons_list[i][j]
