@@ -19,7 +19,7 @@ class MesWindows:
         win_set.attributes("-toolwindow", True)
         win_set.attributes("-topmost", True)
 
-        win_set.geometry(self.get_message_window_geometry(W, H, geometry))
+        win_set.geometry(self.get_toplevel_geometry(W, H, geometry))
 
         CTkLabel(win_set, text="Сложность:", anchor="e", fg_color='white', corner_radius=5,
                  width=140, font=("Arial", 12, "bold")).grid(row=0, column=0, padx=5, pady=5)
@@ -60,7 +60,7 @@ class MesWindows:
         win_set.grab_set()
 
 
-    def get_message_window_geometry(self, W, H, geometry):
+    def get_toplevel_geometry(self, W, H, geometry):
         parent_size, parent_x, parent_y = geometry.split(sep="+")
         parent_W, parent_H = parent_size.split(sep="x")
         center_x = int(parent_x) + int(parent_W) // 2
@@ -88,14 +88,15 @@ class MesWindows:
                         # frame = frame.resize((size_x, size_y))
                         # frame = ImageTk.PhotoImage(frame)
                         frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
-                        lbl.configure(image=frame)
+                        if win. winfo_exists():
+                            lbl.configure(image=frame)
                         time.sleep(0.02)
                         win.update()
-                except Exception as ex:
-                    print(ex)
+                except Exception as msg:
+                    print('gif play error:', msg)
                     break
-        except Exception as ex:
-            print(ex)
+        except Exception as msg:
+            print("gif image load error:", msg)
 
     def show_game_over_window(self):
 
@@ -109,7 +110,7 @@ class MesWindows:
         win_g_o.attributes("-toolwindow", True)
         win_g_o.attributes("-topmost", True)
         geometry = self.win.geometry()
-        win_g_o.geometry(self.get_message_window_geometry(W, H, geometry))
+        win_g_o.geometry(self.get_toplevel_geometry(W, H, geometry))
 
         CTkLabel(win_g_o, text="У тебя был шанс...", font=('Arial', 22), pady=10, fg_color="white",
                 corner_radius=10).place(x=135, y=10)
@@ -182,7 +183,7 @@ class MesWindows:
         win_win.attributes("-toolwindow", True)
         win_win.attributes("-topmost", True)
         geometry = self.win.geometry()
-        win_win.geometry(self.get_message_window_geometry(W, H, geometry))
+        win_win.geometry(self.get_toplevel_geometry(W, H, geometry))
 
         frm_0 = CTkFrame(win_win, width=330, height=65)
         frm_0.place(x=10, y=10)
@@ -268,19 +269,24 @@ class MesWindows:
         frm_2 = CTkFrame(win_win, width=330, height=50)
         frm_2.place(x=10, y=310)
         CTkButton(frm_2, text="Закрыть окно", command=win_win.destroy).place(x=10, y=10)
-        btn1 = CTkButton(frm_2, text="Сохранить имя", command=lambda: \
-                                        self.name_enter(list_players[0:20], line_num-1, enabled_cell, win_win, btn1))
-        btn1.place(x=180, y=10)
+
 
         if line_num>5:
             shift = head_label.cget("height") + (lbl2.cget("height") +2) * (line_num - 2) - 4
             frm_1._parent_canvas.yview_scroll(shift, "units")
 
         if enabled_cell:
+            btn1 = CTkButton(frm_2, text="Сохранить имя", command=lambda: \
+                self.name_enter(list_players[0:20], line_num - 1, enabled_cell, win_win, btn1))
+            btn1.place(x=180, y=10)
             enabled_cell.configure(state="normal", placeholder_text="Введи своё имя", placeholder_text_color="red",
                                    fg_color="yellow")
             enabled_cell.bind("<Return>", lambda event: \
                                         self.name_enter(list_players[0:20], line_num-1, enabled_cell, win_win, btn1))
+        else:
+            btn1 = CTkButton(frm_2, text="Перезапуск игры", command=lambda: \
+                self.destroy_message_window_and_reboot(win_win))
+            btn1.place(x=180, y=10)
 
 
 
