@@ -88,7 +88,6 @@ class MesWindows:
             with Image.open(file) as img:
                 lbl = CTkLabel(win, text="")
                 lbl.place(x=x, y=y)
-
                 win.protocol("WM_DELETE_WINDOW", stop_loop)
 
                 while loop:
