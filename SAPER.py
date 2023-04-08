@@ -199,9 +199,45 @@ class Saper(MesWindows):
         if btn.visit:
             if btn.bombs_around>0:
                 btn.bind("<Button-2>", lambda event, b=btn: self.middle_btn_click(b))
+                btn.bind("<ButtonPress>", lambda event, b=btn: self.visit_button_press(event, b))
         else:
             btn.configure(command=lambda b=btn: self.click_mouse(b))
             btn.bind("<Button-3>", lambda event, b=btn: self.right_btn_click(b))
+
+    def open_neighbours(self, btn):
+        success_flag = True
+        bombs_list = []
+        for i in [-1, 0, 1]:
+            for j in [-1, 0, 1]:
+                new_x = btn.x + i
+                new_y = btn.y + j
+                neighbour = self.buttons_list[new_x][new_y]
+                if not neighbour.visit and neighbour.num not in self.flag_list:
+
+                    if neighbour.bomba:  # открыто поле с миной
+                        neighbour.configure(image=self.bomb_img, text='', fg_color='red', border_width=1,
+                                      corner_radius=5, state='disabled')
+                        neighbour.visit = True
+                        success_flag = False
+                        bombs_list.append(neighbour)
+
+                    else:  # в открытом поле нет мины
+                        if neighbour.bombs_around != 0:  # текст кнопки = количество мин вокруг
+                            neighbour.visit = True
+                            txt = neighbour.bombs_around
+                            neighbour.configure(text=txt, border_width=1, corner_radius=5, fg_color='white',
+                                          text_color_disabled=self.color_dic[txt], state='disabled')
+                            self.set_bindings_for_btn(neighbour)
+                        else:  # открываем всех соседей (алгоритм "поиск в ширину")
+                            self.search_neighbours(neighbour)
+
+        if not success_flag:
+            self.game_over(bombs_list)
+
+
+    def visit_button_press(self, event, b):
+        if "Mod1|Button1 num=3" in str(event): # проверка на одвовременное нажатие правой и левой кнопки мыши
+            self.open_neighbours(b)
 
     def reborn_button(self, but):
         copy_but = Sap_button(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
@@ -371,7 +407,8 @@ class Saper(MesWindows):
         if but.bomba:  # открыто поле с миной
             but.configure(image=self.bomb_img, text='', fg_color='red', border_width=1,
                           corner_radius=5, state='disabled')
-            self.game_over(but)
+            list_but = [but]
+            self.game_over(list_but)
 
         else: # в открытом поле нет мины
             if but.bombs_around != 0:   # текст кнопки = количество мин вокруг
@@ -383,7 +420,7 @@ class Saper(MesWindows):
             else: # открываем всех соседей (алгоритм "поиск в ширину")
                 self.search_neighbours(but)
 
-    def game_over(self, but: Sap_button):  # КОНЕЦ ИГРЫ
+    def game_over(self, but_list: list):  # КОНЕЦ ИГРЫ
         for i in range(1, self.STROKI + 1):
             for j in range(1, self.STOLBCI + 1):
                 temp_but = self.buttons_list[i][j]
@@ -391,7 +428,7 @@ class Saper(MesWindows):
                     # temp_but = self.reborn_button(temp_but)
                     if temp_but.num in self.flag_list:
                         temp_but.configure(border_color="blue", border_width=2,)
-                if temp_but != but and temp_but.bomba:
+                if temp_but not in but_list and temp_but.bomba:
                     if temp_but.num in self.flag_list:
                         temp_but.configure(fg_color="green")
                     temp_but.configure(image=self.bomb_img, text='', border_width=2,
