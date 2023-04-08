@@ -1,4 +1,5 @@
 import json
+import time
 
 import customtkinter
 import pygame
@@ -173,15 +174,17 @@ class Saper(MesWindows):
         except Exception as ex:
             print(ex)
 
-    def btn_anim(self, lst: list, st="normal"):
-        if st=="normal":
-            r = 10
-            c = 'grey'
-        elif st=="flash":
-            r = 5
-            c = 'grey80'
+    def btn_anim(self, lst: list):
+        def normal(lst): #восстанавливает стандартные значения
+            for i in lst:
+                i.configure(corner_radius=10, fg_color='grey')
+
         for i in lst:
-            i.configure(corner_radius=r, fg_color=c)
+            i.configure(corner_radius=5, fg_color='grey80')
+
+        self.win.after(250, lambda: normal(lst))
+
+
 
     def middle_btn_click(self, btn):
         lst = []
@@ -192,8 +195,8 @@ class Saper(MesWindows):
                 neighbour = self.buttons_list[new_x][new_y]
                 if not neighbour.visit:
                     lst.append(neighbour)
-        self.btn_anim(lst, st="flash")
-        self.win.after(150, lambda: self.btn_anim(lst))
+        self.btn_anim(lst)
+
 
     def set_bindings_for_btn(self, btn:Sap_button):
         if btn.visit:
@@ -212,7 +215,7 @@ class Saper(MesWindows):
                 new_x = btn.x + i
                 new_y = btn.y + j
                 neighbour = self.buttons_list[new_x][new_y]
-                if not neighbour.visit and neighbour.num not in self.flag_list:
+                if (not neighbour.visit) and (neighbour.num !=0 ) and (neighbour.num not in self.flag_list):
 
                     if neighbour.bomba:  # открыто поле с миной
                         neighbour.configure(image=self.bomb_img, text='', fg_color='red', border_width=1,
@@ -235,9 +238,9 @@ class Saper(MesWindows):
             self.game_over(bombs_list)
 
 
-    def visit_button_press(self, event, b):
-        if "Mod1|Button1 num=3" in str(event): # проверка на одвовременное нажатие правой и левой кнопки мыши
-            self.open_neighbours(b)
+    def visit_button_press(self, event, but):
+        if "Mod1|Button1 num=3" in str(event): # проверка на одновременное нажатие правой и левой кнопки мыши
+            self.open_neighbours(but)
 
     def reborn_button(self, but):
         copy_but = Sap_button(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
@@ -463,7 +466,7 @@ class Saper(MesWindows):
                         new_x = q_but.x + i
                         new_y = q_but.y + j
                         neighbour = self.buttons_list[new_x][new_y]
-                        if not neighbour.visit and neighbour not in queue and neighbour.num != 0:
+                        if (not neighbour.visit) and (neighbour not in queue) and (neighbour.num != 0):
                             queue.append(neighbour)
 
             q_but.configure(text=but_name, border_width=1, corner_radius=5, fg_color='white', state='disabled')
@@ -491,9 +494,9 @@ class Saper(MesWindows):
                 if but.num in self.list_of_mines:
                     but.bomba = True
 
-    # def print_buttons_to_console(self):
-    #     for i in self.buttons_list:
-    #         print(i)
+    def print_buttons_to_console(self):
+        for i in self.buttons_list:
+            print(i)
 
     def start_game(self):
         self.create_menu_line()

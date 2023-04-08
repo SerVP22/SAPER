@@ -77,24 +77,34 @@ class MesWindows:
         self.switch0_event()
 
     def gif_play(self, file, win, x, y, size_x, size_y):
-        try:
-            img = Image.open(file)
-            lbl = CTkLabel(win, text="")
-            lbl.place(x=x, y=y)
 
-            while True:
-                try:
-                    for frame in ImageSequence.Iterator(img):
-                        # frame = frame.resize((size_x, size_y))
-                        # frame = ImageTk.PhotoImage(frame)
-                        frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
-                        if win. winfo_exists():
-                            lbl.configure(image=frame)
-                        time.sleep(0.02)
-                        win.update()
-                except Exception as msg:
-                    print('gif play error:', msg)
-                    break
+        loop = True
+        def stop_loop():
+            nonlocal loop
+            loop = False
+            win.destroy()
+
+        try:
+            with Image.open(file) as img:
+                lbl = CTkLabel(win, text="")
+                lbl.place(x=x, y=y)
+
+                win.protocol("WM_DELETE_WINDOW", stop_loop)
+
+                while loop:
+                    try:
+                        for frame in ImageSequence.Iterator(img):
+                            frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
+                            if loop:
+                                lbl.configure(image=frame)
+                                win.update()
+                            else:
+                                break
+                            self.win.after(20)
+
+                    except Exception as msg:
+                        print('gif play error:', msg)
+                        break
         except Exception as msg:
             print("gif image load error:", msg)
 
