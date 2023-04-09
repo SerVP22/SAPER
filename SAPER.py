@@ -1,15 +1,11 @@
 import json
-import time
-
 import customtkinter
 import pygame
 
 import tkinter as tk
 from random import sample
 from Buttons import Sap_button
-from customtkinter import CTk, CTkOptionMenu, CTkLabel, CTkButton, \
-                          CTkToplevel, CTkImage, CTkComboBox, \
-                          CTkSwitch, CTkFrame, CTkScrollableFrame, CTkEntry
+from customtkinter import CTk, CTkOptionMenu, CTkButton, CTkImage, CTkSwitch
 
 from Mes_Windows import MesWindows
 from PIL import Image
@@ -119,6 +115,7 @@ class Saper(MesWindows):
         self.game_win_over_flag = False
         self.flag_list = []
         self.first_shoot = True
+        self.gif_loop = False
 
         self.buttons_list = []
         count = 1
@@ -306,12 +303,18 @@ class Saper(MesWindows):
 
 
     def choice_menu(self, option):
-        if option == self.menu_command_list[2]:
+        if option == self.menu_command_list[4]: # Выход
             self.win.destroy()
-        elif option == self.menu_command_list[1]: # Настройки
+        elif option == self.menu_command_list[1]: # Помощь
+            self.menu1.set("Меню")
+            pass
+        elif option == self.menu_command_list[2]: # Топ-20 игроков
+            self.menu1.set("Меню")
+            self.show_top_players()
+        elif option == self.menu_command_list[3]: # Настройки
             self.menu1.set("Меню")
             self.set_win = self.show_settings_window()
-        elif option == self.menu_command_list[0]:
+        elif option == self.menu_command_list[0]: # Новая игра
             self.menu1.set("Меню")
             self.reload_game()
 
@@ -337,7 +340,7 @@ class Saper(MesWindows):
 
     def create_menu_line(self):
 
-        self.menu_command_list = ["Новая игра", "Настройки", "Выход"]
+        self.menu_command_list = ["•  Новая игра", "?  Помощь" , "↑  Топ-20 игроков", "↕  Настройки", "↓  Выход"]
 
         self.menu1 = CTkOptionMenu(self.win, width=80, height=25,
                                    values=self.menu_command_list, command=self.choice_menu)

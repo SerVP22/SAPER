@@ -1,6 +1,6 @@
 from customtkinter import CTkLabel, CTkButton, CTkToplevel, CTkComboBox, CTkScrollableFrame, \
                           CTkSwitch,  CTkImage, CTkEntry, CTkFrame
-import json, time
+import json
 from PIL import Image, ImageSequence
 import tkinter as tk
 
@@ -78,10 +78,10 @@ class MesWindows:
 
     def gif_play(self, file, win, x, y, size_x, size_y):
 
-        loop = True
+        self.gif_loop = True
         def stop_loop():
-            nonlocal loop
-            loop = False
+
+            self.gif_loop = False
             win.destroy()
 
         try:
@@ -90,11 +90,11 @@ class MesWindows:
                 lbl.place(x=x, y=y)
                 win.protocol("WM_DELETE_WINDOW", stop_loop)
 
-                while loop:
+                while self.gif_loop:
                     try:
                         for frame in ImageSequence.Iterator(img):
                             frame = CTkImage(light_image=frame, dark_image=frame, size=(size_x, size_y))
-                            if loop:
+                            if self.gif_loop:
                                 lbl.configure(image=frame)
                                 win.update()
                             else:
@@ -107,13 +107,24 @@ class MesWindows:
         except Exception as msg:
             print("gif image load error:", msg)
 
+    def win_g_o_destroy(self, win):
+        """
+        Удаляет окно Game Over без перезагрузки игры
+        и устанавливает флаг воспроизведения анимации в False
+
+        :param win: принимает объект окна CTkToplevel
+        :return: None
+        """
+        self.gif_loop = False
+        win.destroy()
+
     def show_game_over_window(self):
 
         W = 350
         H = 140
 
         win_g_o = CTkToplevel(self.win)
-        win_g_o.title("Ты проиграл!")
+        win_g_o.title("Вы проиграли!")
         win_g_o.resizable(False, False)
         # win_g_o.attributes("-alpha", 0.9)
         win_g_o.attributes("-toolwindow", True)
@@ -121,9 +132,9 @@ class MesWindows:
         geometry = self.win.geometry()
         win_g_o.geometry(self.get_toplevel_geometry(W, H, geometry))
 
-        CTkLabel(win_g_o, text="У тебя был шанс...", font=('Arial', 22), pady=10, fg_color="white",
+        CTkLabel(win_g_o, text="У вас был шанс...", font=('Arial', 22), pady=10, fg_color="white",
                 corner_radius=10).place(x=135, y=10)
-        CTkButton(win_g_o, text="Закрыть окно", command=win_g_o.destroy).place(x=170, y=65)
+        CTkButton(win_g_o, text="Закрыть окно", command=lambda: self.win_g_o_destroy(win_g_o)).place(x=170, y=65)
         CTkButton(win_g_o, text="Перезапуск игры", command=
         lambda: self.destroy_message_window_and_reboot(win_g_o)
                   ).place(x=170, y=100)
@@ -136,7 +147,6 @@ class MesWindows:
         self.gif_play("images/exploding_low.gif", win_g_o, 10, 10, 120, 120)
 
     def read_winners_from_JSON(self):
-        winners = []
         try:
             with open("winners.json", "r") as f:
                 winners = json.load(f)
@@ -145,6 +155,19 @@ class MesWindows:
         return winners
 
     def list_players_update(self, players: list, score: int):
+        """
+        Добавляет новый элемент в списке игроков-лидеров.
+        Элемент сортируется по счёту "score" между бОльшим значением и меньшим
+        При равенстве текущего счёта со счётом из другого элемента,
+        новый элемент устанавливается выше уже имеющегося
+
+        :param players: список игроков в виде списка словарей
+        :param score: счёт тек
+        :return: Возвращает расширенный список.
+        В качестве нового имени игрока устанавливается "" (пустое значение)
+
+        """
+
         new_list = []
         user_inside = False
         for i in players:
@@ -207,7 +230,7 @@ class MesWindows:
             text = "очков"
         CTkLabel(frm_0, text=text, font=('Arial', 18), pady=10).place(x=240, y=10)
 
-        frm_1 = CTkScrollableFrame(win_win, width=308, height=10)
+        frm_1 = CTkScrollableFrame(win_win, width=308, height=202)
         frm_1.place(x=10, y=85)
 
 
@@ -230,43 +253,9 @@ class MesWindows:
         line_num = 0
         lbl2 = None
 
-        for i in range(1, WINNERS_COUNT+1):
-            lbl1 = CTkEntry(frm_1, width=30, )
-            if i<10:
-                txt_num = str(i)
-            else:
-                txt_num = str(i)
-            lbl1.insert(0, txt_num)
-            lbl1.configure(state=tk.DISABLED, justify="center")
-            lbl1.grid(row=i, column=0, padx=1, pady=1)
+        self.draw_grid_players(frm_1, WINNERS_COUNT, list_players)
 
-            lbl2 = CTkEntry(frm_1, width=115, )
-            try:
-                txt_name = list_players[i-1]["name"]
-            except LookupError:
-                txt_name = ""
-            lbl2.insert(0, txt_name)
-            lbl2.configure(state=tk.DISABLED)
-            lbl2.grid(row=i, column=1, padx=1, pady=1)
-
-            lbl3 = CTkEntry(frm_1, width=60, )
-            try:
-                txt_score = list_players[i-1]["score"]
-            except LookupError:
-                txt_score = ""
-            lbl3.insert(0, txt_score)
-            lbl3.configure(state=tk.DISABLED, justify="right")
-            lbl3.grid(row=i, column=2, padx=1, pady=1)
-
-            lbl4 = CTkEntry(frm_1, width=95, )
-            try:
-                txt_level = list_players[i-1]["level"]
-            except LookupError:
-                txt_level = ""
-            lbl4.insert(0, txt_level)
-            lbl4.configure(state=tk.DISABLED, justify="center")
-            lbl4.grid(row=i, column=3, padx=1, pady=1)
-
+        for i in range(1, WINNERS_COUNT + 1):
             try:
                 if list_players[i-1]["name"] == "" and list_players[i-1]["score"] == score:
                     enabled_cell = lbl2
@@ -297,9 +286,6 @@ class MesWindows:
                 self.destroy_message_window_and_reboot(win_win))
             btn1.place(x=180, y=10)
 
-
-
-
         # print(type(win_win))
         # win_win.bind_class("customtkinter.windows.ctk_toplevel.CTkToplevel", "<Leave>", lambda event: print("out"))
         win_win.grab_set()
@@ -308,8 +294,82 @@ class MesWindows:
         if self.SOUND_ON and self.sound_win:
             self.sound_win.play()
 
+    def draw_grid_players(self, frm_1, WINNERS_COUNT, list_players):
+        for i in range(1, WINNERS_COUNT+1):
+            lbl1 = CTkEntry(frm_1, width=30, )
+            txt_num = str(i)
+            lbl1.insert(0, txt_num)
+            lbl1.configure(state=tk.DISABLED, justify="center")
+            lbl1.grid(row=i, column=0, padx=1, pady=1)
+
+            lbl2 = CTkEntry(frm_1, width=115, )
+            try:
+                txt_name = list_players[i-1]["name"]
+            except LookupError:
+                txt_name = ""
+            lbl2.insert(0, txt_name)
+            lbl2.configure(state=tk.DISABLED)
+            lbl2.grid(row=i, column=1, padx=1, pady=1)
+
+            lbl3 = CTkEntry(frm_1, width=60, )
+            try:
+                txt_score = list_players[i-1]["score"]
+            except LookupError:
+                txt_score = ""
+            lbl3.insert(0, txt_score)
+            lbl3.configure(state=tk.DISABLED, justify="right")
+            lbl3.grid(row=i, column=2, padx=1, pady=1)
+
+            lbl4 = CTkEntry(frm_1, width=95, )
+            try:
+                txt_level = list_players[i-1]["level"]
+            except LookupError:
+                txt_level = ""
+            lbl4.insert(0, txt_level)
+            lbl4.configure(state=tk.DISABLED, justify="center")
+            lbl4.grid(row=i, column=3, padx=1, pady=1)
+    def show_top_players(self):
+
+        W = 350
+        H = 370
+        WINNERS_COUNT = 20
+
+        top_pl_win = CTkToplevel(self.win)
+        top_pl_win.title("Лучшие игроки")
+        top_pl_win.resizable(False, False)
+        # top_pl_win.attributes("-alpha", 0.9)
+        top_pl_win.attributes("-toolwindow", True)
+        top_pl_win.attributes("-topmost", True)
+        geometry = self.win.geometry()
+        top_pl_win.geometry(self.get_toplevel_geometry(W, H, geometry))
+
+        frm_1 = CTkScrollableFrame(top_pl_win, width=308, height=278)
+        frm_1.place(x=10, y=10)
+
+        CTkLabel(frm_1, text="№", corner_radius=5, width=30).grid(row=0, column=0, padx=1)
+        CTkLabel(frm_1, text="Имя игрока", corner_radius=5, width=115).grid(row=0, column=1, padx=1)
+        CTkLabel(frm_1, text="Очки", corner_radius=5, width=60).grid(row=0, column=2, padx=1)
+        CTkLabel(frm_1, text="Сложность", corner_radius=5, width=95).grid(row=0, column=3, padx=1)
+
+        list_players = self.read_winners_from_JSON()
+        if len(list_players) == 0:
+            list_players.append({"name": "Ошибка",
+                                 "score": "чтения",
+                                 "level": "файла"
+                                 })
+
+        self.draw_grid_players(frm_1, WINNERS_COUNT, list_players)
+        frm_2 = CTkFrame(top_pl_win, width=330, height=50)
+        frm_2.place(x=10, y=310)
+        CTkButton(frm_2, text="Закрыть окно", command=top_pl_win.destroy).place(x=95, y=10)
+
+        # print(type(top_pl_win))
+        # top_pl_win.bind_class("customtkinter.windows.ctk_toplevel.CTkToplevel", "<Leave>", lambda event: print("out"))
+        top_pl_win.grab_set()
+        top_pl_win.focus_set()
+
     def destroy_message_window_and_reboot(self, win):
-        # win.after_cancel(self.loop_1)
+        self.gif_loop = False
         win.destroy()
         self.reload_game()
 
