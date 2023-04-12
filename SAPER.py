@@ -4,16 +4,16 @@ import pygame
 
 import tkinter as tk
 from random import sample
-from Buttons import Sap_button
+from Buttons import SapButton
 from customtkinter import CTk, CTkOptionMenu, CTkButton, CTkImage, CTkSwitch
 
 from Mes_Windows import MesWindows
+from Help_Window import HelpWin
 from PIL import Image
 import sys
 
 
-
-class Saper(MesWindows):
+class Saper(MesWindows, HelpWin):
     win = CTk()
 
     color_dic = {
@@ -33,7 +33,7 @@ class Saper(MesWindows):
                   " •SAPEr•     ", " ••SAPer•    ", " •••SAper•   ",
                   " ••••Saper•  ", " •••••saper• ", " •••••sapeR• ", " ••••sapER•  ",
                   " •••saPER•   ", " ••sAPER•   ", " •SAPER•     ",
-    ]
+                  ]
     tit_num = 0
     win.title(title_list[tit_num])
     win.resizable(False, False)
@@ -63,8 +63,8 @@ class Saper(MesWindows):
                             dark_image=Image.open("images/flag2.png"), size=(16, 16))
         bomb_img = CTkImage(light_image=Image.open("images/bomb.png"),
                             dark_image=Image.open("images/bomb.png"), size=(25, 25))
-    except:
-        print("Ошибка загрузки изображений")
+    except Exception as msg:
+        print("Ошибка загрузки изображений:", msg)
         win.destroy()
         sys.exit()
 
@@ -75,8 +75,6 @@ class Saper(MesWindows):
 
     FILE_CFG = "config.json"
 
-
-
     def __init__(self):
 
         self.CURRENT_LEVEL, self.STROKI, self.STOLBCI, self.SOUND_ON = self.read_settings_from_file(self.FILE_CFG)
@@ -86,12 +84,12 @@ class Saper(MesWindows):
         # количество столбцов #(макс 31)
         if self.STOLBCI < 7:
             self.STOLBCI = 7  # минимальное количество столбцов 7
-        if self.STOLBCI> self.get_max_fields_count()[0]:
+        if self.STOLBCI > self.get_max_fields_count()[0]:
             self.STOLBCI = self.get_max_fields_count()[0]
-         # количество строк #(макс.23)
+        # количество строк #(макс.23)
         if self.STROKI < 4:
             self.STROKI = 4  # минимальное количество строк 4
-        if self.STROKI> self.get_max_fields_count()[1]:
+        if self.STROKI > self.get_max_fields_count()[1]:
             self.STROKI = self.get_max_fields_count()[1]
 
         dX = int((self.SW - self.BW * self.STOLBCI) / 2) - 8  # координата по X
@@ -106,9 +104,8 @@ class Saper(MesWindows):
         [[NNN]x[NNN]]+NNN+NNN
         """
         if self.win.geometry().split(sep="+")[0].split(sep="x")[0] != str(self.STOLBCI * self.BW) or \
-           self.win.geometry().split(sep="+")[0].split(sep="x")[1] != str(self.STROKI * self.BH + 52):
+                self.win.geometry().split(sep="+")[0].split(sep="x")[1] != str(self.STROKI * self.BH + 52):
             self.win.geometry(f'+{dX}+{dY}')  # размещаем игровое поле по центру экрана
-
 
         self.MINES = int(self.STROKI * self.STOLBCI * self.CURRENT_LEVEL)  # количество мин на поле
 
@@ -127,8 +124,8 @@ class Saper(MesWindows):
                     count += 1
                 else:
                     num_but = 0
-                but = Sap_button(self.win, x=i, y=j, num=num_but, text='', width=self.BW, height=self.BH,
-                                 corner_radius=10, border_width=2, fg_color='grey')
+                but = SapButton(self.win, x=i, y=j, num=num_but, text='', width=self.BW, height=self.BH,
+                                corner_radius=10, border_width=2, fg_color='grey')
                 self.set_bindings_for_btn(but)
                 temp_list.append(but)
 
@@ -139,7 +136,7 @@ class Saper(MesWindows):
         Возвращает максимальное допустимое количество полей по горизонтали и вертикали.
         Вычислется на основе текущего разрешения экрана и размеров одного поля (клетки)
         """
-        return self.SW//self.BW -1, self.SH//self.BH - 2
+        return self.SW // self.BW - 1, self.SH // self.BH - 2
 
     def read_settings_from_file(self, file_name):
         temp_list = []
@@ -149,13 +146,14 @@ class Saper(MesWindows):
             temp_list.append(self.HARD_LEVELS[settings["level"]])
             temp_list.append(int(settings["rows"]))
             temp_list.append(int(settings["columns"]))
-            if settings["sound"]=="off":
+            if settings["sound"] == "off":
                 temp_list.append(False)
             else:
                 temp_list.append(True)
             return temp_list
-        except:
-            return (0.125, 10, 10, True) #конфигурация игры по умолчанию
+        except Exception as msg:
+            print("Ошибка:", msg)
+            return 0.125, 10, 10, True  # конфигурация игры по умолчанию
 
     def switch0_event(self):
         try:
@@ -172,16 +170,14 @@ class Saper(MesWindows):
             print(ex)
 
     def btn_anim(self, lst: list):
-        def normal(lst): #восстанавливает стандартные значения
-            for i in lst:
-                i.configure(corner_radius=10, fg_color='grey')
+        def normal(lst_):  # восстанавливает стандартные значения
+            for j in lst_:
+                j.configure(corner_radius=10, fg_color='grey')
 
         for i in lst:
             i.configure(corner_radius=5, fg_color='grey80')
 
         self.win.after(250, lambda: normal(lst))
-
-
 
     def middle_btn_click(self, btn):
         lst = []
@@ -194,10 +190,9 @@ class Saper(MesWindows):
                     lst.append(neighbour)
         self.btn_anim(lst)
 
-
-    def set_bindings_for_btn(self, btn:Sap_button):
+    def set_bindings_for_btn(self, btn: SapButton):
         if btn.visit:
-            if btn.bombs_around>0:
+            if btn.bombs_around > 0:
                 btn.bind("<Button-2>", lambda event, b=btn: self.middle_btn_click(b))
                 btn.bind("<ButtonPress>", lambda event, b=btn: self.visit_button_press(event, b))
         else:
@@ -212,11 +207,11 @@ class Saper(MesWindows):
                 new_x = btn.x + i
                 new_y = btn.y + j
                 neighbour = self.buttons_list[new_x][new_y]
-                if (not neighbour.visit) and (neighbour.num !=0 ) and (neighbour.num not in self.flag_list):
+                if (not neighbour.visit) and (neighbour.num != 0) and (neighbour.num not in self.flag_list):
 
                     if neighbour.bomba:  # открыто поле с миной
                         neighbour.configure(image=self.bomb_img, text='', fg_color='red', border_width=1,
-                                      corner_radius=5, state='disabled')
+                                            corner_radius=5, state='disabled')
                         neighbour.visit = True
                         success_flag = False
                         bombs_list.append(neighbour)
@@ -226,7 +221,7 @@ class Saper(MesWindows):
                             neighbour.visit = True
                             txt = neighbour.bombs_around
                             neighbour.configure(text=txt, border_width=1, corner_radius=5, fg_color='white',
-                                          text_color_disabled=self.color_dic[txt], state='disabled')
+                                                text_color_disabled=self.color_dic[txt], state='disabled')
                             self.set_bindings_for_btn(neighbour)
                         else:  # открываем всех соседей (алгоритм "поиск в ширину")
                             self.search_neighbours(neighbour)
@@ -234,14 +229,13 @@ class Saper(MesWindows):
         if not success_flag:
             self.game_over(bombs_list)
 
-
     def visit_button_press(self, event, but):
-        if "Mod1|Button1 num=3" in str(event): # проверка на одновременное нажатие правой и левой кнопки мыши
+        if "Mod1|Button1 num=3" in str(event):  # проверка на одновременное нажатие правой и левой кнопки мыши
             self.open_neighbours(but)
 
     def reborn_button(self, but):
-        copy_but = Sap_button(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
-                              corner_radius=10, border_width=2, fg_color='grey')
+        copy_but = SapButton(self.win, but.x, but.y, but.num, text='', width=self.BW, height=self.BH,
+                             corner_radius=10, border_width=2, fg_color='grey')
         self.set_bindings_for_btn(copy_but)
         self.buttons_list[but.x][but.y] = copy_but
         copy_but.bomba = but.bomba
@@ -272,9 +266,9 @@ class Saper(MesWindows):
                 self.game_win_over_flag = True
                 self.show_win_window()
 
-    def right_btn_click(self, but: Sap_button):
+    def right_btn_click(self, but: SapButton):
         if not self.first_shoot and not but.visit and not self.game_win_over_flag:
-        # если не начало игры, поле не открыто, и игра не окончена
+            # если не начало игры, поле не открыто, и игра не окончена
             if self.SOUND_ON and self.sound_flag:
                 self.sound_flag.play()
             if but.num not in self.flag_list:
@@ -290,31 +284,29 @@ class Saper(MesWindows):
             self.check_flags()
 
     def status_bar_update(self):
-        l = len(self.flag_list)
-        if l > self.MINES:
+        len_ = len(self.flag_list)
+        if len_ > self.MINES:
             col = "red"
             fg = "grey10"
         else:
             col = "white"
             fg = "grey65"
         self.label3.configure(fg_color=fg, text_color_disabled=col,
-                              text=f"Мины: [ {self.MINES} ] / Флажки: [ {l} ]")
-
-
+                              text=f"Мины: [ {self.MINES} ] / Флажки: [ {len_} ]")
 
     def choice_menu(self, option):
-        if option == self.menu_command_list[4]: # Выход
+        if option == self.menu_command_list[4]:  # Выход
             self.win.destroy()
-        elif option == self.menu_command_list[1]: # Помощь
+        elif option == self.menu_command_list[1]:  # Помощь
             self.menu1.set("Меню")
-            pass
-        elif option == self.menu_command_list[2]: # Топ-20 игроков
+            self.show_help_window()
+        elif option == self.menu_command_list[2]:  # Топ-20 игроков
             self.menu1.set("Меню")
             self.show_top_players()
-        elif option == self.menu_command_list[3]: # Настройки
+        elif option == self.menu_command_list[3]:  # Настройки
             self.menu1.set("Меню")
-            self.set_win = self.show_settings_window()
-        elif option == self.menu_command_list[0]: # Новая игра
+            self.show_settings_window()
+        elif option == self.menu_command_list[0]:  # Новая игра
             self.menu1.set("Меню")
             self.reload_game()
 
@@ -331,16 +323,15 @@ class Saper(MesWindows):
             self.switch0.select()
         else:
             self.switch0.deselect()
-        self.switch0.grid(row=self.STROKI+1, column=1, columnspan=2)
+        self.switch0.grid(row=self.STROKI + 1, column=1, columnspan=2)
 
         self.label3 = CTkButton(self.win, text="Выберите первое поле", height=25, width=self.BW * 5,
                                 fg_color="gray65", state="disabled", text_color_disabled="white", )
-        self.label3.grid(row=self.STROKI+1, column=self.STOLBCI - 4, columnspan=5)
-
+        self.label3.grid(row=self.STROKI + 1, column=self.STOLBCI - 4, columnspan=5)
 
     def create_menu_line(self):
 
-        self.menu_command_list = ["•  Новая игра", "?  Помощь" , "↑  Топ-20 игроков", "↕  Настройки", "↓  Выход"]
+        self.menu_command_list = ["•  Новая игра", "?  Cправка", "↑  Топ-20 игроков", "↕  Настройки", "↓  Выход"]
 
         self.menu1 = CTkOptionMenu(self.win, width=80, height=25,
                                    values=self.menu_command_list, command=self.choice_menu)
@@ -395,7 +386,7 @@ class Saper(MesWindows):
                         but.configure(text=txt, border_width=1, corner_radius=5, fg_color='white',
                                       state='disabled')
 
-    def click_mouse(self, but: Sap_button):
+    def click_mouse(self, but: SapButton):
         """
         Функция срабатывает при нажатии на кнопку-поле левой кнопкой мыши.
         При открытии стартового поля расставляются мины по всему игровому полю.
@@ -404,7 +395,7 @@ class Saper(MesWindows):
         Если мин вокруг равно 0, то запускается алгоритм поиска в ширину,
         который открывает "пустые" соседние поля
 
-        :param but: принимает объект кнопки Sap_button
+        :param but: принимает объект кнопки SapButton
         :return: None
         """
 
@@ -412,7 +403,6 @@ class Saper(MesWindows):
             self.sound_click.play()
 
         if self.first_shoot:
-
             self.set_mines(but.num)
             self.mines_around()
             # self.open_all_buttons()
@@ -427,14 +417,14 @@ class Saper(MesWindows):
             list_but = [but]
             self.game_over(list_but)
 
-        else: # в открытом поле нет мины
-            if but.bombs_around != 0:   # текст кнопки = количество мин вокруг
+        else:  # в открытом поле нет мины
+            if but.bombs_around != 0:  # текст кнопки = количество мин вокруг
                 but.visit = True
                 txt = but.bombs_around
                 but.configure(text=txt, border_width=1, corner_radius=5, fg_color='white',
                               text_color_disabled=self.color_dic[txt], state='disabled')
                 self.set_bindings_for_btn(but)
-            else: # открываем всех соседей (алгоритм "поиск в ширину")
+            else:  # открываем всех соседей (алгоритм "поиск в ширину")
                 self.search_neighbours(but)
 
     def game_over(self, but_list: list):  # КОНЕЦ ИГРЫ
@@ -444,27 +434,27 @@ class Saper(MesWindows):
                 if temp_but.num in self.flag_list:
                     # temp_but = self.reborn_button(temp_but)
                     if temp_but.num in self.flag_list:
-                        temp_but.configure(border_color="blue", border_width=2,)
+                        temp_but.configure(border_color="blue", border_width=2, )
                 if temp_but not in but_list and temp_but.bomba:
                     if temp_but.num in self.flag_list:
                         temp_but.configure(fg_color="green")
                     temp_but.configure(image=self.bomb_img, text='', border_width=2,
                                        corner_radius=5)
                 temp_but.configure(state='disabled')
-        if len(self.flag_list)>0:
+        if len(self.flag_list) > 0:
             self.label3.configure(text_color_disabled="blue")
         self.game_win_over_flag = True
         self.show_game_over_window()
         # self.reload_game()
 
-    def search_neighbours(self, but: Sap_button):
+    def search_neighbours(self, but: SapButton):
         queue = [but]
         while queue:  # цикл отвечает за перебор полей из очереди
             q_but = queue.pop(0)
             but_name = ""
             q_but.visit = True
 
-            if q_but.num in self.flag_list: # флаг отмечен неправильно
+            if q_but.num in self.flag_list:  # флаг отмечен неправильно
                 q_but = self.reborn_button(q_but)
                 self.flag_list.remove(q_but.num)
                 self.status_bar_update()
@@ -485,6 +475,7 @@ class Saper(MesWindows):
 
             q_but.configure(text=but_name, border_width=1, corner_radius=5, fg_color='white', state='disabled')
             self.set_bindings_for_btn(q_but)
+
     def reload_game(self):
         for child in self.win.winfo_children():
             child.destroy()

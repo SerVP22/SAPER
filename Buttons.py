@@ -1,6 +1,7 @@
 from customtkinter import CTkButton, CTkFont
 
-class Sap_button(CTkButton):
+
+class SapButton(CTkButton):
 
     def __init__(self, master, x, y, num, *args, **kwargs):
         self.x = x
@@ -11,13 +12,10 @@ class Sap_button(CTkButton):
         self.bombs_around = 0
         self.visit = False
 
-
-
     def __repr__(self):
         if self.bomba:
-          # return f"BOMB {self.num:2} ({self.x},{self.y})"
-          return f"({self.x},{self.y})[ BOMB ]"
+            # return f"BOMB {self.num:2} ({self.x},{self.y})"
+            return f"({self.x},{self.y})[ BOMB ]"
         else:
-          #  return f".... {self.num:2} ({self.x},{self.y})"
-          return f"({self.x},{self.y})[\033[31mn{self.num:2} \033[32mb{self.bombs_around}\033[0m]"
-
+            #  return f".... {self.num:2} ({self.x},{self.y})"
+            return f"({self.x},{self.y})[\033[31mn{self.num:2} \033[32mb{self.bombs_around}\033[0m]"

@@ -53,23 +53,22 @@ class MesWindows:
             switch1.deselect()
         switch1.grid(row=3, column=1, pady=5)
 
-        btn1 = CTkButton(win_set, text="Применить параметры", command=
-        lambda: self.save_settings_button_click(win_set, comb1, comb2, comb3, switch1))
+        btn1 = CTkButton(win_set, text="Применить параметры", command=lambda:
+                         self.save_settings_button_click(win_set, comb1, comb2, comb3, switch1))
         btn1.grid(row=4, column=0, columnspan=2, pady=15)
 
         win_set.grab_set()
 
-
-    def get_toplevel_geometry(self, W, H, geometry):
+    def get_toplevel_geometry(self, w, h, geometry):
         parent_size, parent_x, parent_y = geometry.split(sep="+")
         parent_W, parent_H = parent_size.split(sep="x")
         center_x = int(parent_x) + int(parent_W) // 2
         center_y = int(parent_y) + int(parent_H) // 2
-        new_x = center_x - W // 2
-        new_y = center_y - H // 2
-        return f"{W}x{H}+{new_x}+{new_y + 5}"
+        new_x = center_x - w // 2
+        new_y = center_y - h // 2
+        return f"{w}x{h}+{new_x}+{new_y + 5}"
 
-    def switch1_event(self, sw:CTkSwitch):
+    def switch1_event(self, sw: CTkSwitch):
         if sw.get() == "on":
             self.switch0.select()
         else:
@@ -79,6 +78,7 @@ class MesWindows:
     def gif_play(self, file, win, x, y, size_x, size_y):
 
         self.gif_loop = True
+
         def stop_loop():
 
             self.gif_loop = False
@@ -133,12 +133,10 @@ class MesWindows:
         win_g_o.geometry(self.get_toplevel_geometry(W, H, geometry))
 
         CTkLabel(win_g_o, text="У вас был шанс...", font=('Arial', 22), pady=10, fg_color="white",
-                corner_radius=10).place(x=135, y=10)
+                 corner_radius=10).place(x=135, y=10)
         CTkButton(win_g_o, text="Закрыть окно", command=lambda: self.win_g_o_destroy(win_g_o)).place(x=170, y=65)
-        CTkButton(win_g_o, text="Перезапуск игры", command=
-        lambda: self.destroy_message_window_and_reboot(win_g_o)
-                  ).place(x=170, y=100)
-
+        CTkButton(win_g_o, text="Перезапуск игры", command=lambda:
+                  self.destroy_message_window_and_reboot(win_g_o)).place(x=170, y=100)
 
         win_g_o.grab_set()
         if self.SOUND_ON and self.sound_boom:
@@ -171,16 +169,16 @@ class MesWindows:
         new_list = []
         user_inside = False
         for i in players:
-            if score<i["score"]:
+            if score < i["score"]:
                 new_list.append(i)
-            elif score>=i["score"] and not user_inside:
-                new_list.append({"name":"",
+            elif score >= i["score"] and not user_inside:
+                new_list.append({"name": "",
                                  "score": score,
                                  "level": f"{self.get_current_hard()} {self.STROKI}x{self.STOLBCI}"
-                                })
+                                 })
                 new_list.append(i)
                 user_inside = True
-            elif score>=i["score"] and user_inside:
+            elif score >= i["score"] and user_inside:
                 new_list.append(i)
         return new_list
 
@@ -196,7 +194,7 @@ class MesWindows:
         try:
             with open("winners.json", "w") as f:
                 json.dump(players_list, f)
-        except:
+        except Exception as msg:
             cell.delete(0, tk.END)
             cell.insert(0, "Ошибка записи в файл")
 
@@ -233,7 +231,6 @@ class MesWindows:
         frm_1 = CTkScrollableFrame(win_win, width=308, height=202)
         frm_1.place(x=10, y=85)
 
-
         CTkLabel(frm_1, text="№", corner_radius=5, width=30).grid(row=0, column=0, padx=1)
         head_label = CTkLabel(frm_1, text="Имя игрока", corner_radius=5, width=115)
         head_label.grid(row=0, column=1, padx=1)
@@ -241,49 +238,35 @@ class MesWindows:
         CTkLabel(frm_1, text="Сложность", corner_radius=5, width=95).grid(row=0, column=3, padx=1)
 
         list_players = self.read_winners_from_JSON()
-        if len(list_players)>0:
+        if len(list_players) > 0:
             list_players = self.list_players_update(list_players, score)
         else:
             list_players.append({"name": "",
                                  "score": score,
                                  "level": f"{self.get_current_hard()} {self.STROKI}x{self.STOLBCI}"
-                                })
+                                 })
 
-        enabled_cell = None
-        line_num = 0
-        lbl2 = None
-
-        self.draw_grid_players(frm_1, WINNERS_COUNT, list_players)
-
-        for i in range(1, WINNERS_COUNT + 1):
-            try:
-                if list_players[i-1]["name"] == "" and list_players[i-1]["score"] == score:
-                    enabled_cell = lbl2
-                    line_num = i
-            except LookupError:
-                pass
-
+        enabled_cell, line_num = self.draw_grid_players(frm_1, WINNERS_COUNT, list_players, score=score)
 
         frm_2 = CTkFrame(win_win, width=330, height=50)
         frm_2.place(x=10, y=310)
         CTkButton(frm_2, text="Закрыть окно", command=win_win.destroy).place(x=10, y=10)
 
-
-        if line_num>5:
-            shift = head_label.cget("height") + (lbl2.cget("height") +2) * (line_num - 2) - 4
+        if line_num > 5:
+            shift = head_label.cget("height") + (enabled_cell.cget("height") + 2) * (line_num - 2) - 4
             frm_1._parent_canvas.yview_scroll(shift, "units")
 
         if enabled_cell:
-            btn1 = CTkButton(frm_2, text="Сохранить имя", command=lambda: \
-                self.name_enter(list_players[0:20], line_num - 1, enabled_cell, win_win, btn1))
+            btn1 = CTkButton(frm_2, text="Сохранить имя", command=lambda:
+                             self.name_enter(list_players[0:20], line_num - 1, enabled_cell, win_win, btn1))
             btn1.place(x=180, y=10)
             enabled_cell.configure(state="normal", placeholder_text="Введи своё имя", placeholder_text_color="red",
                                    fg_color="yellow")
-            enabled_cell.bind("<Return>", lambda event: \
-                                        self.name_enter(list_players[0:20], line_num-1, enabled_cell, win_win, btn1))
+            enabled_cell.bind("<Return>", lambda event:
+                              self.name_enter(list_players[0:20], line_num-1, enabled_cell, win_win, btn1))
         else:
-            btn1 = CTkButton(frm_2, text="Перезапуск игры", command=lambda: \
-                self.destroy_message_window_and_reboot(win_win))
+            btn1 = CTkButton(frm_2, text="Перезапуск игры", command=lambda:
+                             self.destroy_message_window_and_reboot(win_win))
             btn1.place(x=180, y=10)
 
         # print(type(win_win))
@@ -294,7 +277,9 @@ class MesWindows:
         if self.SOUND_ON and self.sound_win:
             self.sound_win.play()
 
-    def draw_grid_players(self, frm_1, WINNERS_COUNT, list_players):
+    def draw_grid_players(self, frm_1, WINNERS_COUNT, list_players, score=None):
+        enabled_cell = None
+        line_num = None
         for i in range(1, WINNERS_COUNT+1):
             lbl1 = CTkEntry(frm_1, width=30, )
             txt_num = str(i)
@@ -328,6 +313,16 @@ class MesWindows:
             lbl4.insert(0, txt_level)
             lbl4.configure(state=tk.DISABLED, justify="center")
             lbl4.grid(row=i, column=3, padx=1, pady=1)
+
+            if score:
+                try:
+                    if list_players[i - 1]["name"] == "" and list_players[i - 1]["score"] == score:
+                        enabled_cell = lbl2
+                        line_num = i
+                except LookupError:
+                    pass
+
+        return enabled_cell, line_num
     def show_top_players(self):
 
         W = 350
@@ -368,6 +363,8 @@ class MesWindows:
         top_pl_win.grab_set()
         top_pl_win.focus_set()
 
+
+
     def destroy_message_window_and_reboot(self, win):
         self.gif_loop = False
         win.destroy()
@@ -379,9 +376,8 @@ class MesWindows:
         try:
             with open(self.FILE_CFG, "w") as f:
                 json.dump(mono_list, f)
-        except:
+        except Exception as msg:
             pass
-
 
     def save_settings_button_click(self, win, *args):
         settings = {}
