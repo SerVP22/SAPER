@@ -256,7 +256,7 @@ class MesWindows:
         frm_2.place(x=10, y=310)
         CTkButton(frm_2, text="Закрыть окно", command=win_win.destroy).place(x=10, y=10)
 
-        if line_num > 5:
+        if line_num and line_num > 5:
             shift = head_label.cget("height") + (enabled_cell.cget("height") + 2) * (line_num - 2) - 4
             frm_1._parent_canvas.yview_scroll(shift, "units")
 
