@@ -1,19 +1,22 @@
 import json
 import customtkinter
 import pygame
+import psutil
 
 import tkinter as tk
 from random import sample
 from Buttons import SapButton
 from customtkinter import CTk, CTkOptionMenu, CTkButton, CTkImage, CTkSwitch
 
+from MSWin_module import WorkSpaceMSWin
 from Mes_Windows import MesWindows
 from Help_Window import HelpWin
 from PIL import Image
 import sys
 
 
-class Saper(MesWindows, HelpWin):
+class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
+
     win = CTk()
 
     color_dic = {
@@ -50,10 +53,17 @@ class Saper(MesWindows, HelpWin):
         sound_click = sound_boom = sound_win = sound_flag = False
         print(ex)
 
-    try:
-        win.iconbitmap(tk.PhotoImage('images/bomb4.ico'))
-    except Exception as ex:
-        print(ex)
+    delta = None
+
+    if psutil.WINDOWS:
+        try:
+            win.iconbitmap(tk.PhotoImage('images/bomb4.ico'))
+        except Exception as ex:
+            print(ex)
+        try:
+            delta = WorkSpaceMSWin()
+        except Exception as ex:
+            print(ex)
 
     BW = 40  # Ширина кнопки
     BH = 40  # Высота кнопки
@@ -68,10 +78,17 @@ class Saper(MesWindows, HelpWin):
         win.destroy()
         sys.exit()
 
-    HORIZONTAL_ANIM = False
+    # HORIZONTAL_ANIM = False
     HARD_LEVELS = {'Kid': 0.05, 'Easy': 0.125, 'Normal': 0.17, 'Hard': 0.25}
-    SW = win.winfo_screenwidth()  # ширина экрана
-    SH = win.winfo_screenheight()  # высота экрана
+
+    if delta:
+        # ширина экрана с поправкой на величину панели задач
+        SW = win.winfo_screenwidth() - abs(delta.get_w())
+        # высота экрана с поправкой на величину панели задач
+        SH = win.winfo_screenheight() - abs(delta.get_h())
+    else:
+        SW = win.winfo_screenwidth()  # ширина экрана
+        SH = win.winfo_screenheight()  # высота экрана
 
     FILE_CFG = "config.json"
 
@@ -91,9 +108,18 @@ class Saper(MesWindows, HelpWin):
             self.STROKI = 4  # минимальное количество строк 4
         if self.STROKI > self.get_max_fields_count()[1]:
             self.STROKI = self.get_max_fields_count()[1]
+        if self.delta:
+            if self.delta.get_w() >= 0:
+                d_x = 0
+            else:
+                d_x = self.delta.get_w()
+            if self.delta.get_h() >= 0:
+                d_y = 0
+            else:
+                d_y = self.delta.get_h()
 
-        dX = int((self.SW - self.BW * self.STOLBCI) / 2) - 8  # координата по X
-        dY = int((self.SH - self.BH * self.STROKI) / 2) - 30  # координата по Y
+        dX = int((self.SW - self.BW * self.STOLBCI) / 2) - 8 - d_x # координата по X
+        dY = int((self.SH - self.BH * self.STROKI) / 2) - 40 - d_y   # координата по Y
         if dX < 0:
             dX = 0
         if dY < 0:

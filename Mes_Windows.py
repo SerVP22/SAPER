@@ -1,3 +1,4 @@
+import psutil
 from customtkinter import CTkLabel, CTkButton, CTkToplevel, CTkComboBox, CTkScrollableFrame, \
                           CTkSwitch,  CTkImage, CTkEntry, CTkFrame
 import json
@@ -16,7 +17,8 @@ class MesWindows:
         win_set.title("Настройки игры")
         win_set.resizable(False, False)
         win_set.attributes("-alpha", 0.9)
-        win_set.attributes("-toolwindow", True)
+        if psutil.WINDOWS:
+            win_set.attributes("-toolwindow", True)
         win_set.attributes("-topmost", True)
 
         win_set.geometry(self.get_toplevel_geometry(W, H, geometry))
@@ -127,7 +129,8 @@ class MesWindows:
         win_g_o.title("Вы проиграли!")
         win_g_o.resizable(False, False)
         # win_g_o.attributes("-alpha", 0.9)
-        win_g_o.attributes("-toolwindow", True)
+        if psutil.WINDOWS:
+            win_g_o.attributes("-toolwindow", True)
         win_g_o.attributes("-topmost", True)
         geometry = self.win.geometry()
         win_g_o.geometry(self.get_toplevel_geometry(W, H, geometry))
@@ -210,7 +213,8 @@ class MesWindows:
         win_win.title("Победа!")
         win_win.resizable(False, False)
         # win_win.attributes("-alpha", 0.9)
-        win_win.attributes("-toolwindow", True)
+        if psutil.WINDOWS:
+            win_win.attributes("-toolwindow", True)
         win_win.attributes("-topmost", True)
         geometry = self.win.geometry()
         win_win.geometry(self.get_toplevel_geometry(W, H, geometry))
@@ -333,7 +337,8 @@ class MesWindows:
         top_pl_win.title("Лучшие игроки")
         top_pl_win.resizable(False, False)
         # top_pl_win.attributes("-alpha", 0.9)
-        top_pl_win.attributes("-toolwindow", True)
+        if psutil.WINDOWS:
+            top_pl_win.attributes("-toolwindow", True)
         top_pl_win.attributes("-topmost", True)
         geometry = self.win.geometry()
         top_pl_win.geometry(self.get_toplevel_geometry(W, H, geometry))

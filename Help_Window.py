@@ -1,4 +1,5 @@
 from customtkinter import CTkToplevel, CTkScrollableFrame, CTkFrame, CTkLabel
+import psutil
 
 class HelpWin:
 
@@ -10,7 +11,8 @@ class HelpWin:
         help_win.title("Справка")
         # help_win.resizable(False, False)
         # help_win.attributes("-alpha", 0.9)
-        help_win.attributes("-toolwindow", True)
+        if psutil.WINDOWS:
+            help_win.attributes("-toolwindow", True)
         help_win.attributes("-topmost", True)
         geometry = self.win.geometry()
         help_win.geometry(self.get_toplevel_geometry(W, H, geometry))
