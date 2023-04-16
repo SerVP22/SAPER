@@ -1,4 +1,7 @@
-from win32api import GetMonitorInfo, MonitorFromPoint
+try:
+    from win32api import GetMonitorInfo, MonitorFromPoint # need to install: pywin32==306
+except Exception as msg:
+    print(msg)
 
 class WorkSpaceMSWin:
 

@@ -108,14 +108,13 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
             self.STROKI = 4  # минимальное количество строк 4
         if self.STROKI > self.get_max_fields_count()[1]:
             self.STROKI = self.get_max_fields_count()[1]
+
+        d_x = 0
+        d_y = 0
         if self.delta:
-            if self.delta.get_w() >= 0:
-                d_x = 0
-            else:
+            if self.delta.get_w() < 0:
                 d_x = self.delta.get_w()
-            if self.delta.get_h() >= 0:
-                d_y = 0
-            else:
+            if self.delta.get_h() < 0:
                 d_y = self.delta.get_h()
 
         dX = int((self.SW - self.BW * self.STOLBCI) / 2) - 8 - d_x # координата по X
