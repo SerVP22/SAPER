@@ -53,7 +53,7 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         sound_click = sound_boom = sound_win = sound_flag = False
         print(ex)
 
-    delta = None
+    sys_frame = None
 
     if psutil.WINDOWS:
         try:
@@ -61,7 +61,7 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         except Exception as ex:
             print(ex)
         try:
-            delta = WorkSpaceMSWin()
+            sys_frame = WorkSpaceMSWin()
         except Exception as ex:
             print(ex)
 
@@ -81,11 +81,11 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
     # HORIZONTAL_ANIM = False
     HARD_LEVELS = {'Kid': 0.05, 'Easy': 0.125, 'Normal': 0.17, 'Hard': 0.25}
 
-    if delta:
+    if sys_frame:
         # ширина экрана с поправкой на величину панели задач
-        SW = win.winfo_screenwidth() - abs(delta.get_w())
+        SW = win.winfo_screenwidth() - abs(sys_frame.get_w())
         # высота экрана с поправкой на величину панели задач
-        SH = win.winfo_screenheight() - abs(delta.get_h())
+        SH = win.winfo_screenheight() - abs(sys_frame.get_h())
     else:
         SW = win.winfo_screenwidth()  # ширина экрана
         SH = win.winfo_screenheight()  # высота экрана
@@ -111,11 +111,11 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
 
         d_x = 0
         d_y = 0
-        if self.delta:
-            if self.delta.get_w() < 0:
-                d_x = self.delta.get_w()
-            if self.delta.get_h() < 0:
-                d_y = self.delta.get_h()
+        if self.sys_frame:
+            if self.sys_frame.get_w() < 0:
+                d_x = self.sys_frame.get_w()
+            if self.sys_frame.get_h() < 0:
+                d_y = self.sys_frame.get_h()
 
         dX = int((self.SW - self.BW * self.STOLBCI) / 2) - 8 - d_x # координата по X
         dY = int((self.SH - self.BH * self.STROKI) / 2) - 40 - d_y   # координата по Y
@@ -532,6 +532,7 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         self.create_menu_line()
         self.draw_all_buttons()
         self.create_status_bar()
+        # self.show_help_window()
 
 
 if __name__ == "__main__":

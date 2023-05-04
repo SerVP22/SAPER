@@ -1,9 +1,11 @@
 try:
     from win32api import GetMonitorInfo, MonitorFromPoint # need to install: pywin32==306
-except Exception as msg:
+except ImportError as msg:
     print(msg)
 
 class WorkSpaceMSWin:
+
+    """"""
 
     def __init__(self):
 
