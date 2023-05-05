@@ -128,7 +128,6 @@ class MesWindows:
         win_g_o = CTkToplevel(self.win)
         win_g_o.title("Вы проиграли!")
         win_g_o.resizable(False, False)
-        # win_g_o.attributes("-alpha", 0.9)
         if psutil.WINDOWS:
             win_g_o.attributes("-toolwindow", True)
         win_g_o.attributes("-topmost", True)
@@ -212,7 +211,6 @@ class MesWindows:
         win_win = CTkToplevel(self.win)
         win_win.title("Победа!")
         win_win.resizable(False, False)
-        # win_win.attributes("-alpha", 0.9)
         if psutil.WINDOWS:
             win_win.attributes("-toolwindow", True)
         win_win.attributes("-topmost", True)
@@ -273,8 +271,6 @@ class MesWindows:
                              self.destroy_message_window_and_reboot(win_win))
             btn1.place(x=180, y=10)
 
-        # print(type(win_win))
-        # win_win.bind_class("customtkinter.windows.ctk_toplevel.CTkToplevel", "<Leave>", lambda event: print("out"))
         win_win.grab_set()
         win_win.focus_set()
 
@@ -336,7 +332,6 @@ class MesWindows:
         top_pl_win = CTkToplevel(self.win)
         top_pl_win.title("Лучшие игроки")
         top_pl_win.resizable(False, False)
-        # top_pl_win.attributes("-alpha", 0.9)
         if psutil.WINDOWS:
             top_pl_win.attributes("-toolwindow", True)
         top_pl_win.attributes("-topmost", True)
@@ -363,8 +358,6 @@ class MesWindows:
         frm_2.place(x=10, y=310)
         CTkButton(frm_2, text="Закрыть окно", command=top_pl_win.destroy).place(x=95, y=10)
 
-        # print(type(top_pl_win))
-        # top_pl_win.bind_class("customtkinter.windows.ctk_toplevel.CTkToplevel", "<Leave>", lambda event: print("out"))
         top_pl_win.grab_set()
         top_pl_win.focus_set()
 

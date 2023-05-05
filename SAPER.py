@@ -49,6 +49,8 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         sound_win = pygame.mixer.Sound("sounds/win.wav")
         sound_click = pygame.mixer.Sound("sounds/click.wav")
         sound_flag = pygame.mixer.Sound("sounds/flag.wav")
+        sound_push = pygame.mixer.Sound("sounds/push.wav")
+        sound_open = pygame.mixer.Sound("sounds/open.wav")
     except Exception as ex:
         sound_click = sound_boom = sound_win = sound_flag = False
         print(ex)
@@ -201,8 +203,9 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
 
         for i in lst:
             i.configure(corner_radius=5, fg_color='grey80')
-
-        self.win.after(250, lambda: normal(lst))
+        if self.SOUND_ON and self.sound_push:
+            self.sound_push.play()
+        self.win.after(200, lambda: normal(lst))
 
     def middle_btn_click(self, btn):
         lst = []
@@ -225,6 +228,9 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
             btn.bind("<Button-3>", lambda event, b=btn: self.right_btn_click(b))
 
     def open_neighbours(self, btn):
+        if self.SOUND_ON and self.sound_open:
+            self.sound_open.play()
+
         success_flag = True
         bombs_list = []
         for i in [-1, 0, 1]:
@@ -532,7 +538,6 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         self.create_menu_line()
         self.draw_all_buttons()
         self.create_status_bar()
-        self.show_help_window()
 
 
 if __name__ == "__main__":
