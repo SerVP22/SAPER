@@ -532,7 +532,7 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         self.create_menu_line()
         self.draw_all_buttons()
         self.create_status_bar()
-        # self.show_help_window()
+        self.show_help_window()
 
 
 if __name__ == "__main__":
