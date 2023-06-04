@@ -96,20 +96,24 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
 
     def __init__(self):
 
+        # загрузка параметров из файла
         self.CURRENT_LEVEL, self.STROKI, self.STOLBCI, self.SOUND_ON = self.read_settings_from_file(self.FILE_CFG)
-        # self.STROKI = self.STOLBCI = 7
-        # self.CURRENT_LEVEL =
 
-        # количество столбцов #(макс 31)
+        # защита от ложных параметров
+
+        max_fields_list = self.get_max_fields_count()
+        # количество столбцов
         if self.STOLBCI < 7:
             self.STOLBCI = 7  # минимальное количество столбцов 7
-        if self.STOLBCI > self.get_max_fields_count()[0]:
-            self.STOLBCI = self.get_max_fields_count()[0]
-        # количество строк #(макс.23)
+        if self.STOLBCI > max_fields_list[0]:
+            self.STOLBCI = max_fields_list[0]
+        # количество строк
         if self.STROKI < 4:
             self.STROKI = 4  # минимальное количество строк 4
-        if self.STROKI > self.get_max_fields_count()[1]:
-            self.STROKI = self.get_max_fields_count()[1]
+        if self.STROKI > max_fields_list[1]:
+            self.STROKI = max_fields_list[1]
+
+        # расчёт геометрии окна с поправкой на панель задач для центровки окна приложения
 
         d_x = 0
         d_y = 0
@@ -134,12 +138,18 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
                 self.win.geometry().split(sep="+")[0].split(sep="x")[1] != str(self.STROKI * self.BH + 52):
             self.win.geometry(f'+{dX}+{dY}')  # размещаем игровое поле по центру экрана
 
-        self.MINES = int(self.STROKI * self.STOLBCI * self.CURRENT_LEVEL)  # количество мин на поле
+        # рассчёт количества мин на поле с учётом размера поля и уровня сложности
+
+        self.MINES = int(self.STROKI * self.STOLBCI * self.CURRENT_LEVEL)
+
+        # декларация переменных
 
         self.game_win_over_flag = False
         self.flag_list = []
         self.first_shoot = True
         self.gif_loop = False
+
+        # инициализация "кнопок" игрового поля
 
         self.buttons_list = []
         count = 1
@@ -156,7 +166,7 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
                 self.set_bindings_for_btn(but)
                 temp_list.append(but)
 
-            self.buttons_list.append(temp_list)
+            self.buttons_list.append(temp_list) # создание массива кнопок
 
     def get_max_fields_count(self):
         """
@@ -166,6 +176,11 @@ class Saper(MesWindows, HelpWin, WorkSpaceMSWin):
         return self.SW // self.BW - 1, self.SH // self.BH - 2
 
     def read_settings_from_file(self, file_name):
+        """
+
+        :param file_name: имя файла Json с параметрами
+        :return:
+        """
         temp_list = []
         try:
             with open(file_name, 'r') as f:
